@@ -11,7 +11,8 @@
     "generate-object-property": "^1.1.0",
     "protocol-buffers-schema": "^2.0.1",
     "signed-varint": "^2.0.0",
-    "varint": "^4.0.0"
+    "varint": "^4.0.0",
+    "long": "^2.2.3"
   },
   "devDependencies": {
     "brfs": "^1.4.0",

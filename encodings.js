@@ -1,5 +1,75 @@
 var varint = require('varint')
 var svarint = require('signed-varint')
+var Long = require('long');
+
+var longvarint = function(){
+  var MSB = 0x80
+    , REST = 0x7F
+    , MSBALL = ~REST
+    , INT = Math.pow(2, 31)
+    , longInt = Long.fromNumber(INT, true);
+
+  var encode =  function(num, out, offset) {
+    out = out || []
+    offset = offset || 0
+    var oldOffset = offset
+
+    num = Long.fromString(''+num, true, 10);
+
+    while(num.compare(longInt) > -1) {
+      out[offset++] = num.and(0xFF).or(MSB).toInt()
+      num = num.div(128);
+    }
+    num = num.toInt();
+
+    while(num & MSBALL) {
+      out[offset++] = (num & 0xFF) | MSB
+      num >>>= 7
+    }
+    out[offset] = num | 0
+
+    encode.bytes = offset - oldOffset + 1
+    return out
+  };
+  var decode = function (buf, offset) {
+    var res    = Long.fromString('0', true, 10)
+      , offset = offset || 0
+      , shift  = 0
+      , counter = offset
+      , b
+      , l = buf.length
+
+    do {
+      if(counter >= l) {
+        decode.bytesRead = 0
+        return undefined
+      }
+      b = Long.fromNumber(buf[counter++], true);
+      if(shift < 28) {
+        res = res.add(b.and(REST).shiftLeft(shift))
+      }else {
+        res = res.add(b.and(REST).multiply(Math.pow(2, shift)))
+      }
+      shift += 7
+    } while (b >= MSB)
+
+    decode.bytes = counter - offset
+
+    return res.toString()
+  };
+
+  var encodingLength = function(val) {
+    console.log('encodingLength', val, varint.encodingLength(val))
+    return val < 0 ? 10 : varint.encodingLength(val)
+  };
+
+  return {
+    encode: encode,
+    decode: decode,
+    encodingLength: encodingLength
+  };
+
+}();
 
 var encoder = function(type, encode, decode, encodingLength) {
   encode.bytes = decode.bytes = 0
@@ -134,16 +204,12 @@ exports.int32 = function() {
 exports.int64 = function() {
   var decode = function(buffer, offset) {
     var val = varint.decode(buffer, offset)
-    if (val >= Math.pow(2,63)) {
-      var limit = 9;
-      while (buffer[offset+limit-1] === 0xff) limit--
-      limit = limit || 9;
-      var subset = new Buffer(limit)
-      buffer.copy(subset, 0, offset, offset+limit)
-      subset[limit-1] = subset[limit-1] & 0x7f
-      val = -1 * varint.decode(subset, 0)
-      decode.bytes = 10
-    } else {
+
+    if (val >= Math.pow(2,52)) {
+      val = longvarint.decode(buffer, offset);
+      decode.bytes = longvarint.decode.bytes
+    }
+    else {
       decode.bytes = varint.decode.bytes
     }
     return val
@@ -161,7 +227,11 @@ exports.int64 = function() {
       }
       buffer[last] = 0x01
       encode.bytes = 10
-    } else {
+    } else if (val >= Math.pow(2,52)) {
+      longvarint.encode(val, buffer, offset)
+      encode.bytes = longvarint.encode.bytes
+    }
+    else {
       varint.encode(val, buffer, offset)
       encode.bytes = varint.encode.bytes
     }
