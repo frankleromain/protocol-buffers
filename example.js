@@ -29,7 +29,6 @@ nums :[
 var buf = messages.Test.encode(ex)
 
 
-
 console.log('test message\n', ex)
 console.log(buf)
 console.log('encoded test message decoded\n', messages.Test.decode(buf))
@@ -43,3 +42,6 @@ buf = messages.Test.encode(messages.Test.decode(buf))
 console.log('encoded test message decoded\n', messages.Test.decode(buf))
 
 
+// console.log('test message', ex)
+// console.log('encoded test message', buf)
+// console.log('encoded test message decoded', messages.Test.decode(buf))

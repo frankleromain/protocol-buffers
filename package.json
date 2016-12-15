@@ -1,25 +1,26 @@
 {
   "name": "protocol-buffers",
-  "version": "3.0.0",
+  "version": "3.2.1",
   "description": "Protocol Buffers for Node.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/mafintosh/protocol-buffers"
   },
   "dependencies": {
+    "brfs": "^1.4.0",
     "generate-function": "^2.0.0",
-    "generate-object-property": "^1.1.0",
-    "protocol-buffers-schema": "^2.0.1",
+    "generate-object-property": "^1.2.0",
+    "protocol-buffers-schema": "^3.1.1",
     "signed-varint": "^2.0.0",
     "varint": "^4.0.0",
     "long": "^2.2.3"
   },
   "devDependencies": {
-    "brfs": "^1.4.0",
+    "standard": "^5.4.1",
     "tape": "^3.0.3"
   },
   "scripts": {
-    "test": "tape test/*.js",
+    "test": "standard && tape test/*.js",
     "bench": "node bench"
   },
   "browserify": {
