@@ -56,7 +56,7 @@ var defaultValue = function (f, def) {
 
   switch (f.type) {
     case 'string':
-      return isString(def) ? def : '""'
+      return isString(def) ? def : 'null'
 
     case 'bool':
       if (def === 'true') return 'true'
